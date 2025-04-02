@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schulprojekt Auswahl</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .selection-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        .selection-container label {
+            margin-bottom: 10px;
+        }
+        .submit-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Wählen Sie Ihre bevorzugten Themen</h1>
+
+    <form id="subjectForm" class="selection-container">
+        <!-- The subjects will be added dynamically here -->
+    </form>
+
+    <button id="submitBtn" class="submit-button" disabled>Absenden</button>
+
+    <script>
+        const subjects = [
+            { name: "Meditative Aquarellmalerei", max: 20 },
+            { name: "Wild Life", max: 60 },
+            { name: "Italien/Tessin", max: 20 },
+            { name: "Zentangle & Asiatische Küche", max: 16 },
+            { name: "Mechanische Maschinen aus Karton", max: 10 },
+            { name: "Brückenbau", max: 25 },
+            { name: "Kreativworkshop mit Svarovski- und Roccaillesperlen", max: 30 },
+            { name: "Natur und Bewegung", max: 24 },
+            { name: "Songtexte und Karaoke", max: 15 },
+            { name: "Musicamin", max: 12 },
+            { name: "Kultur in Züri", max: 30 },
+            { name: "Klettern, Parkour & Rackets", max: 25 }
+        ];
+
+        // Randomize the order of subjects
+        const randomizedSubjects = [...subjects].sort(() => Math.random() - 0.5);
+
+        const form = document.getElementById('subjectForm');
+        let selectedSubjects = [];
+
+        // Dynamically create checkboxes for each subject
+        randomizedSubjects.forEach(subject => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" name="subject" value="${subject.name}">${subject.name}`;
+            form.appendChild(label);
+        });
+
+        // Enable submit button only if 3 subjects are selected
+        form.addEventListener('change', () => {
+            selectedSubjects = [...form.querySelectorAll('input:checked')].map(input => input.value);
+            document.getElementById('submitBtn').disabled = selectedSubjects.length !== 3;
+        });
+
+        // Handle form submission
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const name = prompt("Bitte geben Sie Ihren Namen ein:");
+            if (!name || selectedSubjects.length !== 3) {
+                alert("Bitte wählen Sie genau 3 Themen aus.");
+                return;
+            }
+
+            // Send the data to the Google Apps Script
+            fetch("https://script.google.com/macros/s/AKfycbyZQxMuddnS8jgQ-h80kVr1m1RM2yKWsQ0XdmUHecaopT0sa2gd921_TvDtWKR7kDlG/exec", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    name: name,
+                    selection: JSON.stringify(selectedSubjects)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert(`Erfolgreich gespeichert! Zuweisung: ${data.assignedSubjects.join(", ")}`);
+                } else {
+                    alert(`Fehler: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error("Fehler:", error);
+                alert("Fehler beim Speichern. Siehe Konsole für Details.");
+            });
+        });
+    </script>
+
+</body>
+</html>
+
+
+
