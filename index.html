@@ -33,56 +33,75 @@
     <button id="submitBtn" class="submit-button" disabled>Absenden</button>
 
     <script>
-        const subjects = [
-            { name: "Meditative Aquarellmalerei", max: 20 },
-            { name: "Wild Life", max: 60 },
-            { name: "Italien/Tessin", max: 20 },
-            { name: "Zentangle & Asiatische Küche", max: 16 },
-            { name: "Mechanische Maschinen aus Karton", max: 10 },
-            { name: "Brückenbau", max: 25 },
-            { name: "Kreativworkshop mit Svarovski- und Roccaillesperlen", max: 30 },
-            { name: "Natur und Bewegung", max: 24 },
-            { name: "Songtexte und Karaoke", max: 15 },
-            { name: "Musicamin", max: 12 },
-            { name: "Kultur in Züri", max: 30 },
-            { name: "Klettern, Parkour & Rackets", max: 25 }
-        ];
+        document.addEventListener("DOMContentLoaded", function () {
+            const subjects = [
+                { name: "Meditative Aquarellmalerei", max: 20 },
+                { name: "Wild Life", max: 60 },
+                { name: "Italien/Tessin", max: 20 },
+                { name: "Zentangle & Asiatische Küche", max: 16 },
+                { name: "Mechanische Maschinen aus Karton", max: 10 },
+                { name: "Brückenbau", max: 25 },
+                { name: "Kreativworkshop mit Svarovski- und Roccaillesperlen", max: 30 },
+                { name: "Natur und Bewegung", max: 24 },
+                { name: "Songtexte und Karaoke", max: 15 },
+                { name: "Musicamin", max: 12 },
+                { name: "Kultur in Züri", max: 30 },
+                { name: "Klettern, Parkour & Rackets", max: 25 }
+            ];
 
-        // Randomize the order of subjects
-        const randomizedSubjects = [...subjects].sort(() => Math.random() - 0.5);
+            // Randomize the order of subjects
+            const randomizedSubjects = [...subjects].sort(() => Math.random() - 0.5);
 
-        const form = document.getElementById('subjectForm');
-        let selectedSubjects = [];
+            const form = document.getElementById('subjectForm');
+            let selectedSubjects = [];
 
-        // Dynamically create checkboxes for each subject
-        randomizedSubjects.forEach(subject => {
-            const label = document.createElement('label');
-            label.innerHTML = `<input type="checkbox" name="subject" value="${subject.name}">${subject.name}`;
-            form.appendChild(label);
-        });
+            // Dynamically create checkboxes for each subject
+            randomizedSubjects.forEach(subject => {
+                const label = document.createElement('label');
+                label.innerHTML = `<input type="checkbox" name="subject" value="${subject.name}"> ${subject.name}`;
+                form.appendChild(label);
+            });
 
-        // Enable submit button only if 3 subjects are selected
-        form.addEventListener('change', () => {
-            selectedSubjects = [...form.querySelectorAll('input:checked')].map(input => input.value);
-            document.getElementById('submitBtn').disabled = selectedSubjects.length !== 3;
-        });
+            // Enable submit button only if 3 subjects are selected
+            form.addEventListener('change', () => {
+                selectedSubjects = [...form.querySelectorAll('input:checked')].map(input => input.value);
+                document.getElementById('submitBtn').disabled = selectedSubjects.length !== 3;
+            });
 
-        // Handle form submission
-        document.getElementById('submitBtn').addEventListener('click', () => {
-            const name = prompt("Bitte geben Sie Ihren Namen ein:");
-            if (!name || selectedSubjects.length !== 3) {
-                alert("Bitte wählen Sie genau 3 Themen aus.");
-                return;
-            }
+            // Handle form submission
+            document.getElementById('submitBtn').addEventListener('click', () => {
+                const name = prompt("Bitte geben Sie Ihren Namen ein:");
+                if (!name || selectedSubjects.length !== 3) {
+                    alert("Bitte wählen Sie genau 3 Themen aus.");
+                    return;
+                }
 
-            // Send the data to the Google Apps Script
-            fetch("https://script.google.com/macros/s/AKfycbylfmFZVvG7Y9ng6SVWHdmr2lJAWH46PEcp_GX_un3y_spsSTmzdfkItVvY_TK0910C/exec", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: name,
-                    subjects: selectedSubjects
+                // Send the data to the Google Apps Script
+                fetch("https://script.google.com/macros/s/AKfycbylfmFZVvG7Y9ng6SVWHdmr2lJAWH46PEcp_GX_un3y_spsSTmzdfkItVvY_TK0910C/exec", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        subjects: selectedSubjects
                     })
-})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert(`Erfolgreich gespeichert! Zuweisung: ${data.assignedSubjects.join(", ")}`);
+                    } else {
+                        alert(`Fehler: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error("Fehler:", error);
+                    alert("Fehler beim Speichern. Siehe Konsole für Details.");
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
