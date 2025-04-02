@@ -1,107 +1,95 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schulprojekt Auswahl</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .selection-container {
-            display: flex;
-            flex-direction: column;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-        .selection-container label {
-            margin-bottom: 10px;
-        }
-        .submit-button {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Projektwoche Auswahl</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 1em; }
+    h1 { text-align: center; }
+    .selection-container {
+      max-width: 400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .selection-container label {
+      margin: 8px 0;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 1rem;
+    }
+  </style>
 </head>
 <body>
 
-    <h1>Wählen Sie Ihre bevorzugten Themen</h1>
+<h1>Wählen Sie Ihre 3 Lieblingsthemen</h1>
 
-    <form id="subjectForm" class="selection-container">
-        <!-- The subjects will be added dynamically here -->
-    </form>
+<form id="subjectForm" class="selection-container"></form>
+<button id="submitBtn" disabled>Absenden</button>
 
-    <button id="submitBtn" class="submit-button" disabled>Absenden</button>
+<script>
+  const subjects = [
+    "Meditative Aquarellmalerei",
+    "Wild Life",
+    "Italien/Tessin",
+    "Zentangle & Asiatische Küche",
+    "Mechanische Maschinen aus Karton",
+    "Brückenbau",
+    "Kreativworkshop mit Svarovski- und Roccaillesperlen",
+    "Natur und Bewegung",
+    "Songtexte und Karaoke",
+    "Musicamin",
+    "Kultur in Züri",
+    "Klettern, Parkour & Rackets"
+  ];
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const subjects = [
-                { name: "Meditative Aquarellmalerei", max: 20 },
-                { name: "Wild Life", max: 60 },
-                { name: "Italien/Tessin", max: 20 },
-                { name: "Zentangle & Asiatische Küche", max: 16 },
-                { name: "Mechanische Maschinen aus Karton", max: 10 },
-                { name: "Brückenbau", max: 25 },
-                { name: "Kreativworkshop mit Svarovski- und Roccaillesperlen", max: 30 },
-                { name: "Natur und Bewegung", max: 24 },
-                { name: "Songtexte und Karaoke", max: 15 },
-                { name: "Musicamin", max: 12 },
-                { name: "Kultur in Züri", max: 30 },
-                { name: "Klettern, Parkour & Rackets", max: 25 }
-            ];
+  const randomizedSubjects = [...subjects].sort(() => Math.random() - 0.5);
+  const form = document.getElementById("subjectForm");
+  let selected = [];
 
-            // Randomize the order of subjects
-            const randomizedSubjects = [...subjects].sort(() => Math.random() - 0.5);
+  randomizedSubjects.forEach(subject => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${subject}"> ${subject}`;
+    form.appendChild(label);
+  });
 
-            const form = document.getElementById('subjectForm');
-            let selectedSubjects = [];
+  form.addEventListener("change", () => {
+    selected = [...form.querySelectorAll("input:checked")].map(i => i.value);
+    document.getElementById("submitBtn").disabled = selected.length !== 3;
+  });
 
-            // Dynamically create checkboxes for each subject
-            randomizedSubjects.forEach(subject => {
-                const label = document.createElement('label');
-                label.innerHTML = `<input type="checkbox" name="subject" value="${subject.name}"> ${subject.name}`;
-                form.appendChild(label);
-            });
+  document.getElementById("submitBtn").addEventListener("click", () => {
+    const name = prompt("Bitte geben Sie Ihren Vor- und Nachnamen ein:");
+    if (!name || selected.length !== 3) {
+      alert("Bitte geben Sie einen Namen ein und wählen Sie genau 3 Themen.");
+      return;
+    }
 
-            // Enable submit button only if 3 subjects are selected
-            form.addEventListener('change', () => {
-                selectedSubjects = [...form.querySelectorAll('input:checked')].map(input => input.value);
-                document.getElementById('submitBtn').disabled = selectedSubjects.length !== 3;
-            });
-
-            // Handle form submission
-            document.getElementById('submitBtn').addEventListener('click', () => {
-                const name = prompt("Bitte geben Sie Ihren Namen ein:");
-                if (!name || selectedSubjects.length !== 3) {
-                    alert("Bitte wählen Sie genau 3 Themen aus.");
-                    return;
-                }
-
-                // Send the data to the Google Apps Script
-                fetch("https://script.google.com/macros/s/AKfycbylfmFZVvG7Y9ng6SVWHdmr2lJAWH46PEcp_GX_un3y_spsSTmzdfkItVvY_TK0910C/exec", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        subjects: selectedSubjects
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert(`Erfolgreich gespeichert! Zuweisung: ${data.assignedSubjects.join(", ")}`);
-                    } else {
-                        alert(`Fehler: ${data.message}`);
-                    }
-                })
-                .catch(error => {
-                    console.error("Fehler:", error);
-                    alert("Fehler beim Speichern. Siehe Konsole für Details.");
-                });
-            });
-        });
-    </script>
+    fetch("https://script.google.com/macros/s/AKfycbzt7H2uqGehuwSpe31i_7VnThS8d4kMaHPhFcw7csWWGRNGE0eUxmxqYTZvBbMpRfLY/exec", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name: name, subjects: selected })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("Vielen Dank! Ihre Auswahl wurde gespeichert.");
+        window.location.reload();
+      } else {
+        alert("Fehler: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Es ist ein Fehler aufgetreten.");
+    });
+  });
+</script>
 
 </body>
 </html>
